@@ -24,7 +24,7 @@ interface ISeasonData {
     name: string
   }
   status: {
-    parsed_sessions: Record<string, { track_id: number; launch_at: string }>
+    parsed_sessions?: Record<string, { track_id: number; launch_at: string }>
   }
 }
 
@@ -115,7 +115,7 @@ export async function getCompetitionRanking(slug: string) {
   // Map session IDs to their corresponding event group and session IDs
   // This allows us to categorize results by which event they belong to
   const sessionGroups = Object.entries(
-    seasonData.status.parsed_sessions
+    seasonData.status.parsed_sessions || {}
   ).reduce(
     (acc, [id, session]) => {
       const { eventGroupId, eventSessionId } = getSessionEventGroupId(
@@ -341,7 +341,9 @@ export async function getCompetitionSessionsCsv(slug: string) {
   const driverIds = drivers.map((driver) => driver.iRacingId)
 
   // Get the valid sessions sorted by date
-  const sortedSessionIds = Object.entries(seasonData.status.parsed_sessions)
+  const sortedSessionIds = Object.entries(
+    seasonData.status.parsed_sessions || {}
+  )
     .filter(([id, session]) => {
       const { eventGroupId, eventSessionId } = getSessionEventGroupId(
         session,
@@ -386,7 +388,7 @@ export async function getCompetitionSessionsCsv(slug: string) {
     "Driver",
     "Id",
     ...sortedSessionIds.map((id) =>
-      dayjs(seasonData.status.parsed_sessions[id].launch_at).format(
+      dayjs((seasonData.status.parsed_sessions || {})[id]?.launch_at).format(
         "YYYY-MM-DD HH:mm"
       )
     ),
